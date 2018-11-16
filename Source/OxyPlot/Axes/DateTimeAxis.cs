@@ -124,11 +124,11 @@ namespace OxyPlot.Axes
         }
 
         /// <summary>
-        /// Converts a numeric representation of the date (number of days after the time origin) to a DateTime structure.
+        /// Default ToDateTime Func.
         /// </summary>
         /// <param name="value">The number of days after the time origin.</param>
-        /// <returns>A <see cref="DateTime" /> structure. Ticks = 0 if the value is invalid.</returns>
-        public static DateTime ToDateTime(double value)
+        /// <returns></returns>
+        private static DateTime _ToDateTime(double value)
         {
             if (double.IsNaN(value) || value < MinDayValue || value > MaxDayValue)
             {
@@ -138,6 +138,51 @@ namespace OxyPlot.Axes
             return TimeOrigin.AddDays(value - 1);
         }
 
+        private static Func<double, DateTime> _ToDateTimeFunc = _ToDateTime;
+
+        public static Func<double, DateTime> ToDateTimeFunc { set { _ToDateTimeFunc = value; } }
+
+        /// <summary>
+        /// Reset ToDateTimeFunc to default function.
+        /// </summary>
+        public void ToDateTimeFuncReset()
+        {
+            _ToDateTimeFunc = _ToDateTime;
+        }
+
+        /// <summary>
+        /// Converts a numeric representation of the date (number of days after the time origin) to a DateTime structure.
+        /// </summary>
+        /// <param name="value">The number of days after the time origin.</param>
+        /// <returns>A <see cref="DateTime" /> structure. Ticks = 0 if the value is invalid.</returns>
+        public static DateTime ToDateTime(double value)
+        {
+            return _ToDateTimeFunc(value);
+        }
+
+        /// <summary>
+        /// Default ToDouble function.
+        /// </summary>
+        /// <param name="value">The date/time structure.</param>
+        /// <returns></returns>
+        private static double _ToDouble(DateTime value)
+        {
+            var span = value - TimeOrigin;
+            return span.TotalDays + 1;
+        }
+
+        private static Func<DateTime, double> _ToDoubleFunc = _ToDouble;
+
+        public static Func<DateTime, double> ToDoubleFunc { set { _ToDoubleFunc = value; } }
+
+        /// <summary>
+        /// Reset ToDoubleFunc to default method.
+        /// </summary>
+        public void ToDoubleFuncReset()
+        {
+            _ToDoubleFunc = _ToDouble;
+        }
+
         /// <summary>
         /// Converts a DateTime to days after the time origin.
         /// </summary>
@@ -145,8 +190,7 @@ namespace OxyPlot.Axes
         /// <returns>The number of days after the time origin.</returns>
         public static double ToDouble(DateTime value)
         {
-            var span = value - TimeOrigin;
-            return span.TotalDays + 1;
+            return _ToDoubleFunc(value);
         }
 
         /// <summary>
@@ -251,9 +295,9 @@ namespace OxyPlot.Axes
                     }
 
                     break;
-                    
-                    
-                    
+
+
+
                 case DateTimeIntervalType.Milliseconds:
                     this.ActualMinorStep = this.ActualMajorStep;
                     if (this.ActualStringFormat == null)
@@ -262,7 +306,7 @@ namespace OxyPlot.Axes
                     }
 
                     break;
-                    
+
                 case DateTimeIntervalType.Manual:
                     break;
                 case DateTimeIntervalType.Auto:
@@ -368,7 +412,7 @@ namespace OxyPlot.Axes
                 {
                     this.actualIntervalType = DateTimeIntervalType.Seconds;
                 }
-                    
+
                 if (interval >= 1.0 / 24 / 60)
                 {
                     this.actualIntervalType = DateTimeIntervalType.Minutes;
